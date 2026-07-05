@@ -98,16 +98,27 @@ small {
 }
 
 .report-item {
-    background: #f5f5f5;
+    background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+    color: var(--tg-theme-text-color, #000);
     padding: 12px;
     margin-bottom: 8px;
     border-radius: 8px;
     font-size: 14px;
+    border: 1px solid var(--tg-theme-hint-color, #ddd);
 }
 
 .report-item strong {
     display: block;
     margin-bottom: 4px;
+    color: var(--tg-theme-text-color, #000);
+}
+
+.report-item div {
+    color: var(--tg-theme-text-color, #000);
+}
+
+.report-item small {
+    color: var(--tg-theme-hint-color, #888);
 }
 
 .btn-export {
