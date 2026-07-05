@@ -99,9 +99,12 @@ function normalizePlateNumber(value) {
 }
 
 function validatePlateNumber(value) {
+    if (!value || value.trim().length === 0) return false;
+
     const cleaned = normalizePlateNumber(value);
-    // Только кириллица (АВЕКМНОРСТУХ)
-    const pattern = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}\s?\d{2,3}$/;
+    // Упрощенная проверка: буква, цифры, буквы, пробел, цифры
+    // Принимаем больше вариантов форматов
+    const pattern = /^[А-ЯЁ]\d{3}[А-ЯЁ]{2}\s?\d{2,3}$/;
     return pattern.test(cleaned);
 }
 
@@ -244,8 +247,9 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
 function exportToExcel() {
     const reports = loadReports();
 
-    if (reports.length === 0) {
+    if (!reports || reports.length === 0) {
         showStatus('Нет данных для экспорта', 'error');
+        tg.HapticFeedback.notificationOccurred('error');
         return;
     }
 
@@ -258,14 +262,14 @@ function exportToExcel() {
     // Данные
     reports.forEach(report => {
         const row = [
-            report.date,
-            report.object,
-            report.masterName,
-            report.workType,
-            report.plateNumber,
+            report.date || '',
+            report.object || '',
+            report.masterName || '',
+            report.workType || '',
+            report.plateNumber || '',
             '', // АвтоН (пусто)
             '', // Мер (пусто)
-            report.hours,
+            report.hours || 0,
             '', // ДенДу (пусто)
             '' // ФиоДу (пусто)
         ];
@@ -288,6 +292,7 @@ function exportToExcel() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
     }
 
     showStatus('✓ Файл выгружен: ' + fileName, 'success');
