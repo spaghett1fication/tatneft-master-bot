@@ -525,7 +525,17 @@ document.getElementById('clearBtn').addEventListener('click', function() {
     }
 });
 
-document.getElementById('date').value = new Date().toISOString().split('T')[0];
+// Инициализация при загрузке DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Устанавливаем текущую дату
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+});
+
+// Также устанавливаем дату сразу (на случай если DOMContentLoaded уже прошел)
+const dateInput = document.getElementById('date');
+if (dateInput) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+}
 
 // Автодополнение и проверка опечаток для ФИО
 const masterNameInput = document.getElementById('masterName');
