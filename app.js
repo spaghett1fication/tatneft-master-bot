@@ -253,50 +253,151 @@ function exportToExcel() {
         return;
     }
 
-    // Создаем CSV содержимое
+    // Создаем CSV содержимое с расширенным набором полей
     let csvContent = '﻿'; // BOM для корректного отображения кириллицы в Excel
 
-    // Заголовки
-    csvContent += 'Дата;Объект;Мастер;Событие;АвтоМ;АвтоН;Мер;ВремДу;ДенДу;ФиоДу\n';
+    // Заголовки (можно легко добавить/убрать столбцы завтра)
+    const headers = [
+        'Дата',
+        'ФИО мастера',
+        'Объект',
+        'Вид работ',
+        'Гос. номер',
+        'Часы работы',
+        'Марка авто',
+        'Номер водителя',
+        'Мерзлотчик',
+        'Время работы ДУ',
+        'День работы ДУ',
+        'ФИО водителя ДУ',
+        'Примечание',
+        'Время создания отчета'
+    ];
+
+    csvContent += headers.join(';') + '\n';
 
     // Данные
     reports.forEach(report => {
         const row = [
             report.date || '',
-            report.object || '',
             report.masterName || '',
+            report.object || '',
             report.workType || '',
             report.plateNumber || '',
-            '', // АвтоН (пусто)
-            '', // Мер (пусто)
-            report.hours || 0,
-            '', // ДенДу (пусто)
-            '' // ФиоДу (пусто)
+            report.hours || '',
+            report.carBrand || '', // Пока пусто, добавим завтра
+            report.driverPhone || '', // Пока пусто
+            report.merzlotchik || '', // Пока пусто
+            report.duTime || '', // Пока пусто
+            report.duDay || '', // Пока пусто
+            report.duDriver || '', // Пока пусто
+            report.note || '', // Пока пусто
+            new Date(report.timestamp).toLocaleString('ru-RU')
         ];
         csvContent += row.join(';') + '\n';
     });
 
-    // Создаем Blob и скачиваем
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    // Проверяем, где запущено приложение
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    // Фиксированное имя файла для перезаписи
-    const fileName = 'tatneft_reports.csv';
-
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, fileName);
+    if (isMobile) {
+        // На телефоне - копируем в буфер обмена и показываем инструкцию
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(csvContent).then(() => {
+                showMobileExportInstructions(reports.length);
+                tg.HapticFeedback.notificationOccurred('success');
+            }).catch(() => {
+                // Если не получилось скопировать - показываем текст для ручного копирования
+                showManualCopyDialog(csvContent, reports.length);
+            });
+        } else {
+            // Старые браузеры - показываем текст
+            showManualCopyDialog(csvContent, reports.length);
+        }
     } else {
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-    }
+        // На компьютере скачиваем напрямую
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
 
-    showStatus('✓ Файл выгружен: ' + fileName, 'success');
-    tg.HapticFeedback.notificationOccurred('success');
+        const fileName = `tatneft_reports_${new Date().toISOString().split('T')[0]}.csv`;
+
+        if (navigator.msSaveBlob) {
+            navigator.msSaveBlob(blob, fileName);
+        } else {
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
+
+        showStatus('✓ Файл скачан: ' + fileName, 'success');
+        tg.HapticFeedback.notificationOccurred('success');
+    }
+}
+
+function showMobileExportInstructions(count) {
+    const modal = document.createElement('div');
+    modal.className = 'export-modal';
+    modal.innerHTML = `
+        <div class="export-modal-content">
+            <h3>✓ Данные скопированы!</h3>
+            <p><strong>${count} отчет(ов)</strong> готовы к экспорту</p>
+            <div class="export-instructions">
+                <p><strong>Как сохранить:</strong></p>
+                <ol>
+                    <li>Откройте "Сохраненные сообщения" в Telegram</li>
+                    <li>Вставьте текст (долгое нажатие → Вставить)</li>
+                    <li>Отправьте сообщение</li>
+                    <li>Скопируйте файл на компьютер</li>
+                    <li>Откройте в Excel</li>
+                </ol>
+                <p style="font-size: 13px; color: #888; margin-top: 12px;">
+                    💡 Данные уже в буфере обмена, просто вставьте их куда нужно
+                </p>
+            </div>
+            <button class="modal-close-btn" onclick="this.parentElement.parentElement.remove()">
+                Понятно
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function showManualCopyDialog(csvContent, count) {
+    const modal = document.createElement('div');
+    modal.className = 'export-modal';
+    modal.innerHTML = `
+        <div class="export-modal-content">
+            <h3>Экспорт данных (${count} отчетов)</h3>
+            <p>Скопируйте текст ниже:</p>
+            <textarea class="export-textarea" readonly>${csvContent}</textarea>
+            <div class="export-instructions">
+                <p><strong>Как сохранить:</strong></p>
+                <ol>
+                    <li>Скопируйте текст выше</li>
+                    <li>Создайте файл .csv на компьютере</li>
+                    <li>Вставьте текст в файл</li>
+                    <li>Откройте в Excel</li>
+                </ol>
+            </div>
+            <button class="modal-close-btn" onclick="this.parentElement.parentElement.remove()">
+                Закрыть
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Автовыделение текста при клике
+    const textarea = modal.querySelector('.export-textarea');
+    textarea.onclick = function() {
+        this.select();
+        document.execCommand('copy');
+        showStatus('✓ Текст скопирован', 'success');
+    };
+}
 }
 
 document.getElementById('exportBtn').addEventListener('click', exportToExcel);

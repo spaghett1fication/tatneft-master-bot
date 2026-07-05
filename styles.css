@@ -174,3 +174,82 @@ small {
     background: #fff3cd;
     color: #856404;
 }
+
+.export-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.export-modal-content {
+    background: var(--tg-theme-bg-color, #fff);
+    color: var(--tg-theme-text-color, #000);
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.export-modal-content h3 {
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    color: var(--tg-theme-text-color, #000);
+}
+
+.export-instructions {
+    background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+    padding: 12px;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+.export-instructions ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.export-instructions li {
+    margin: 6px 0;
+    line-height: 1.4;
+}
+
+.export-textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 12px;
+    border: 1px solid var(--tg-theme-hint-color, #ddd);
+    border-radius: 6px;
+    margin: 10px 0;
+    background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+    color: var(--tg-theme-text-color, #000);
+    resize: vertical;
+}
+
+.modal-close-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    background: var(--tg-theme-button-color, #0088cc);
+    color: var(--tg-theme-button-text-color, #fff);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.modal-close-btn:active {
+    opacity: 0.8;
+}

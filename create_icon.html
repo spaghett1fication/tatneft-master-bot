@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Создание иконки</title>
+</head>
+<body>
+    <canvas id="canvas" width="640" height="360"></canvas>
+    <br>
+    <button onclick="download()">Скачать изображение</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Градиентный фон
+        const gradient = ctx.createLinearGradient(0, 0, 640, 360);
+        gradient.addColorStop(0, '#0088cc');
+        gradient.addColorStop(1, '#005580');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 640, 360);
+
+        // Текст
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 60px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Отчеты мастеров', 320, 150);
+
+        ctx.font = '40px Arial';
+        ctx.fillText('Татнефть', 320, 230);
+
+        function download() {
+            const link = document.createElement('a');
+            link.download = 'app_icon_640x360.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Автоматически скачать при загрузке
+        window.onload = () => {
+            setTimeout(download, 500);
+        };
+    </script>
+</body>
+</html>
