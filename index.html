@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Отчет мастера</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Отчет о работе</h1>
+
+        <form id="reportForm">
+            <div class="form-group">
+                <label>Дата</label>
+                <input type="date" id="date" required>
+            </div>
+
+            <div class="form-group">
+                <label>ФИО мастера</label>
+                <input type="text" id="masterName" placeholder="Иванов Иван Иванович" required>
+            </div>
+
+            <div class="form-group">
+                <label>Гос. номер</label>
+                <input type="text" id="plateNumber" placeholder="А123БВ 116" maxlength="20" required>
+                <small>Пример: А123БВ 116</small>
+            </div>
+
+            <div class="form-group">
+                <label>Часы работы</label>
+                <input type="number" id="hours" placeholder="8" step="0.5" min="0" max="24" required>
+                <small>От 0 до 24</small>
+            </div>
+
+            <div class="form-group">
+                <label>Объект</label>
+                <select id="object" required>
+                    <option value="">Выберите объект</option>
+                    <option value="obj1">Объект 1</option>
+                    <option value="obj2">Объект 2</option>
+                    <option value="obj3">Объект 3</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Вид работ</label>
+                <select id="workType" required>
+                    <option value="">Выберите вид работ</option>
+                    <option value="work1">Заварка стыков трубопроводов</option>
+                    <option value="work2">Монтаж трубопроводов</option>
+                    <option value="work3">Ремонт оборудования</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-submit">Отправить отчет</button>
+        </form>
+
+        <div id="savedReports" class="saved-section">
+            <h2>Сохраненные отчеты (<span id="reportCount">0</span>)</h2>
+            <div id="reportsList"></div>
+            <button id="clearBtn" class="btn-clear">Очистить все</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
