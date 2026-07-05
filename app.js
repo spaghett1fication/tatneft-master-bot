@@ -38,6 +38,20 @@ function saveReports(reports) {
 // Получить только отчеты текущего пользователя
 function getMyReports() {
     const allReports = loadReports();
+
+    // Если нет userId у отчетов (старые данные) - показываем все и присваиваем текущему пользователю
+    const hasUserId = allReports.some(report => report.userId);
+
+    if (!hasUserId && allReports.length > 0) {
+        // Миграция: присваиваем все старые отчеты текущему пользователю
+        const migratedReports = allReports.map(report => ({
+            ...report,
+            userId: currentUserId
+        }));
+        saveReports(migratedReports);
+        return migratedReports;
+    }
+
     return allReports.filter(report => report.userId === currentUserId);
 }
 
@@ -602,3 +616,17 @@ renderReports();
 if (!navigator.onLine) {
     showStatus('⚠ Нет связи. Работаем в офлайн-режиме', 'offline');
 }
+
+// Автоматически устанавливаем текущую дату при загрузке и каждый день
+function updateCurrentDate() {
+    const dateInput = document.getElementById('date');
+    const today = new Date().toISOString().split('T')[0];
+    if (!dateInput.value || dateInput.value !== today) {
+        dateInput.value = today;
+    }
+}
+
+updateCurrentDate();
+
+// Обновляем дату каждую минуту (на случай если приложение открыто долго)
+setInterval(updateCurrentDate, 60000);
