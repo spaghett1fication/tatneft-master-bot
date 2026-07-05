@@ -105,6 +105,12 @@ small {
     border-radius: 8px;
     font-size: 14px;
     border: 1px solid var(--tg-theme-hint-color, #ddd);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.report-item:hover {
+    background: var(--tg-theme-secondary-bg-color, #e8e8e8);
 }
 
 .report-item strong {
@@ -119,6 +125,41 @@ small {
 
 .report-item small {
     color: var(--tg-theme-hint-color, #888);
+}
+
+.report-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.btn-edit,
+.btn-delete {
+    flex: 1;
+    padding: 8px;
+    font-size: 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-edit {
+    background: #ff9500;
+    color: white;
+}
+
+.btn-edit:active {
+    opacity: 0.8;
+}
+
+.btn-delete {
+    background: #ff3b30;
+    color: white;
+}
+
+.btn-delete:active {
+    opacity: 0.8;
 }
 
 .btn-export {

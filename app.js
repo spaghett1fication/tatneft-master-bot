@@ -6,6 +6,10 @@ tg.ready();
 const STORAGE_KEY = 'tatneft_reports';
 const MASTERS_KEY = 'tatneft_masters_history';
 
+// Получаем ID текущего пользователя Telegram
+const currentUserId = tg.initDataUnsafe?.user?.id || 'demo_user';
+const currentUserName = tg.initDataUnsafe?.user?.first_name || 'Демо';
+
 function loadReports() {
     try {
         const data = localStorage.getItem(STORAGE_KEY);
@@ -18,12 +22,23 @@ function loadReports() {
 
 function saveReports(reports) {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+        // Добавляем userId к каждому отчету
+        const reportsWithUser = reports.map(report => ({
+            ...report,
+            userId: report.userId || currentUserId
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reportsWithUser));
         return true;
     } catch (e) {
         console.error('Ошибка сохранения данных:', e);
         return false;
     }
+}
+
+// Получить только отчеты текущего пользователя
+function getMyReports() {
+    const allReports = loadReports();
+    return allReports.filter(report => report.userId === currentUserId);
 }
 
 function showStatus(message, type = 'success') {
@@ -43,27 +58,83 @@ function showStatus(message, type = 'success') {
 }
 
 function renderReports() {
-    const reports = loadReports();
+    const myReports = getMyReports(); // Только свои отчеты
     const reportsList = document.getElementById('reportsList');
     const reportCount = document.getElementById('reportCount');
 
-    reportCount.textContent = reports.length;
+    reportCount.textContent = myReports.length;
 
-    if (reports.length === 0) {
+    if (myReports.length === 0) {
         reportsList.innerHTML = '<p style="color: #888; text-align: center;">Нет сохраненных отчетов</p>';
         return;
     }
 
-    reportsList.innerHTML = reports.map((report, index) => `
-        <div class="report-item">
+    reportsList.innerHTML = myReports.map((report, index) => `
+        <div class="report-item" onclick="editReport(${index})">
             <strong>${report.date} - ${report.masterName}</strong>
             <div>Гос. номер: ${report.plateNumber}</div>
             <div>Часы: ${report.hours}</div>
             <div>Объект: ${report.object}</div>
             <div>Работы: ${report.workType}</div>
             <small>Сохранено: ${new Date(report.timestamp).toLocaleString('ru-RU')}</small>
+            <div class="report-actions">
+                <button class="btn-edit" onclick="event.stopPropagation(); editReport(${index})">✏️ Редактировать</button>
+                <button class="btn-delete" onclick="event.stopPropagation(); deleteReport(${index})">🗑️ Удалить</button>
+            </div>
         </div>
     `).join('');
+}
+
+// Редактирование отчета
+function editReport(index) {
+    const myReports = getMyReports();
+    const report = myReports[index];
+
+    if (!report) return;
+
+    // Заполняем форму данными из отчета
+    document.getElementById('date').value = report.date;
+    document.getElementById('masterName').value = report.masterName;
+    document.getElementById('plateNumber').value = report.plateNumber;
+    document.getElementById('hours').value = report.hours;
+    document.getElementById('object').value = report.object;
+    document.getElementById('workType').value = report.workType;
+
+    // Прокручиваем к форме
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Сохраняем индекс редактируемого отчета
+    const form = document.getElementById('reportForm');
+    form.dataset.editIndex = index;
+    form.dataset.editTimestamp = report.timestamp;
+
+    // Меняем текст кнопки
+    const submitBtn = form.querySelector('.btn-submit');
+    submitBtn.textContent = '💾 Сохранить изменения';
+    submitBtn.style.background = '#ff9500';
+
+    showStatus('📝 Режим редактирования', 'success');
+    tg.HapticFeedback.impactOccurred('light');
+}
+
+// Удаление отчета
+function deleteReport(index) {
+    if (!confirm('Удалить этот отчет?')) return;
+
+    const allReports = loadReports();
+    const myReports = getMyReports();
+    const reportToDelete = myReports[index];
+
+    // Находим индекс в общем массиве
+    const globalIndex = allReports.findIndex(r => r.timestamp === reportToDelete.timestamp);
+
+    if (globalIndex !== -1) {
+        allReports.splice(globalIndex, 1);
+        saveReports(allReports);
+        renderReports();
+        showStatus('✓ Отчет удален', 'success');
+        tg.HapticFeedback.notificationOccurred('success');
+    }
 }
 
 // Автоматическая нормализация ФИО
@@ -208,7 +279,7 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
         hours: parseFloat(document.getElementById('hours').value),
         object: document.getElementById('object').value,
         workType: document.getElementById('workType').value,
-        timestamp: new Date().toISOString()
+        userId: currentUserId
     };
 
     if (!validatePlateNumber(formData.plateNumber)) {
@@ -223,14 +294,44 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
         return;
     }
 
-    const reports = loadReports();
-    reports.push(formData);
+    const allReports = loadReports();
 
-    if (saveReports(reports)) {
+    // Проверяем режим редактирования
+    const isEditMode = this.dataset.editIndex !== undefined;
+
+    if (isEditMode) {
+        // Режим редактирования
+        const myReports = getMyReports();
+        const editIndex = parseInt(this.dataset.editIndex);
+        const oldReport = myReports[editIndex];
+
+        // Находим в общем массиве и обновляем
+        const globalIndex = allReports.findIndex(r => r.timestamp === oldReport.timestamp);
+
+        if (globalIndex !== -1) {
+            formData.timestamp = oldReport.timestamp; // Сохраняем старый timestamp
+            allReports[globalIndex] = formData;
+        }
+
+        // Сбрасываем режим редактирования
+        delete this.dataset.editIndex;
+        delete this.dataset.editTimestamp;
+
+        const submitBtn = this.querySelector('.btn-submit');
+        submitBtn.textContent = 'Отправить отчет';
+        submitBtn.style.background = '';
+
+        showStatus('✓ Отчет обновлен', 'success');
+    } else {
+        // Режим создания нового отчета
+        formData.timestamp = new Date().toISOString();
+        allReports.push(formData);
+        showStatus('✓ Отчет сохранен локально', 'success');
+    }
+
+    if (saveReports(allReports)) {
         // Сохраняем мастера в историю
         saveMasterToHistory(formData.masterName);
-
-        showStatus('✓ Отчет сохранен локально', 'success');
 
         this.reset();
         document.getElementById('date').value = new Date().toISOString().split('T')[0];
@@ -245,9 +346,9 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
 });
 
 function exportToExcel() {
-    const reports = loadReports();
+    const myReports = getMyReports(); // Только свои отчеты
 
-    if (!reports || reports.length === 0) {
+    if (!myReports || myReports.length === 0) {
         showStatus('Нет данных для экспорта', 'error');
         tg.HapticFeedback.notificationOccurred('error');
         return;
@@ -277,7 +378,7 @@ function exportToExcel() {
     csvContent += headers.join(';') + '\n';
 
     // Данные
-    reports.forEach(report => {
+    myReports.forEach(report => {
         const row = [
             report.date || '',
             report.masterName || '',
@@ -354,8 +455,8 @@ function showMobileExportInstructions(count) {
                     <li>Скопируйте файл на компьютер</li>
                     <li>Откройте в Excel</li>
                 </ol>
-                <p style="font-size: 13px; color: #888; margin-top: 12px;">
-                    💡 Данные уже в буфере обмена, просто вставьте их куда нужно
+                <p style="font-size: 13px; color: var(--tg-theme-hint-color, #888); margin-top: 12px;">
+                    💡 Все ${count} отчетов в одном файле
                 </p>
             </div>
             <button class="modal-close-btn" onclick="this.parentElement.parentElement.remove()">
