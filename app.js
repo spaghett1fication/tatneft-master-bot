@@ -115,6 +115,61 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
     }
 });
 
+function exportToExcel() {
+    const reports = loadReports();
+
+    if (reports.length === 0) {
+        showStatus('Нет данных для экспорта', 'error');
+        return;
+    }
+
+    // Создаем CSV содержимое
+    let csvContent = '﻿'; // BOM для корректного отображения кириллицы в Excel
+
+    // Заголовки
+    csvContent += 'Дата;Объект;Мастер;Событие;АвтоМ;АвтоН;Мер;ВремДу;ДенДу;ФиоДу\n';
+
+    // Данные
+    reports.forEach(report => {
+        const row = [
+            report.date,
+            report.object,
+            report.masterName,
+            report.workType,
+            report.plateNumber,
+            '', // АвтоН (пусто)
+            '', // Мер (пусто)
+            report.hours,
+            '', // ДенДу (пусто)
+            '' // ФиоДу (пусто)
+        ];
+        csvContent += row.join(';') + '\n';
+    });
+
+    // Создаем Blob и скачиваем
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+
+    // Фиксированное имя файла для перезаписи
+    const fileName = 'tatneft_reports.csv';
+
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, fileName);
+    } else {
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    showStatus('✓ Файл выгружен: ' + fileName, 'success');
+    tg.HapticFeedback.notificationOccurred('success');
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+
 document.getElementById('clearBtn').addEventListener('click', function() {
     if (confirm('Удалить все сохраненные отчеты?')) {
         localStorage.removeItem(STORAGE_KEY);
