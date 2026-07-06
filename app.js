@@ -419,15 +419,15 @@ function exportToExcel() {
         // На телефоне - копируем в буфер обмена и показываем инструкцию
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(csvContent).then(() => {
-                showMobileExportInstructions(reports.length);
+                showMobileExportInstructions(myReports.length);
                 tg.HapticFeedback.notificationOccurred('success');
             }).catch(() => {
                 // Если не получилось скопировать - показываем текст для ручного копирования
-                showManualCopyDialog(csvContent, reports.length);
+                showManualCopyDialog(csvContent, myReports.length);
             });
         } else {
             // Старые браузеры - показываем текст
-            showManualCopyDialog(csvContent, reports.length);
+            showManualCopyDialog(csvContent, myReports.length);
         }
     } else {
         // На компьютере скачиваем напрямую
@@ -512,7 +512,6 @@ function showManualCopyDialog(csvContent, count) {
         document.execCommand('copy');
         showStatus('✓ Текст скопирован', 'success');
     };
-}
 }
 
 document.getElementById('exportBtn').addEventListener('click', exportToExcel);
