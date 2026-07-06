@@ -142,24 +142,26 @@ small {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
+    background: transparent;
+    color: var(--tg-theme-hint-color, #888);
 }
 
 .btn-edit {
-    background: #ff9500;
-    color: white;
+    border: 1px solid var(--tg-theme-button-color, #0088cc);
 }
 
-.btn-edit:active {
-    opacity: 0.8;
+.btn-edit:hover {
+    background: var(--tg-theme-button-color, #0088cc);
+    color: white;
 }
 
 .btn-delete {
-    background: #ff3b30;
-    color: white;
+    border: 1px solid #ff3b30;
 }
 
-.btn-delete:active {
-    opacity: 0.8;
+.btn-delete:hover {
+    background: #ff3b30;
+    color: white;
 }
 
 .btn-export {

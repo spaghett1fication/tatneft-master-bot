@@ -92,8 +92,8 @@ function renderReports() {
             <div>Работы: ${report.workType}</div>
             <small>Сохранено: ${new Date(report.timestamp).toLocaleString('ru-RU')}</small>
             <div class="report-actions">
-                <button class="btn-edit" onclick="event.stopPropagation(); editReport(${index})">✏️ Редактировать</button>
-                <button class="btn-delete" onclick="event.stopPropagation(); deleteReport(${index})">🗑️ Удалить</button>
+                <button class="btn-edit" onclick="event.stopPropagation(); editReport(${index})">Редактировать</button>
+                <button class="btn-delete" onclick="event.stopPropagation(); deleteReport(${index})">Удалить</button>
             </div>
         </div>
     `).join('');
